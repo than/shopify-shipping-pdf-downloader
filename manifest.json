@@ -8,6 +8,7 @@
   ],
   "host_permissions": [
     "https://*.myshopify.com/*",
+    "https://admin.shopify.com/*",
     "https://storage.googleapis.com/*",
     "https://shopify-shipify.s3.us-east-1.amazonaws.com/*"
   ],
@@ -16,7 +17,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*.myshopify.com/admin/orders/*"],
+      "matches": [
+        "https://*.myshopify.com/admin/orders/*",
+        "https://admin.shopify.com/store/*/orders/*",
+        "https://admin.shopify.com/store/*/shipping_labels/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
