@@ -4,6 +4,3 @@
 # Extension packaging
 *.crx
 *.pem
-
-# Icons (until we add real ones)
-icons/*.png
