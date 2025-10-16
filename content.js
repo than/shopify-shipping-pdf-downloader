@@ -13,7 +13,8 @@ const BROOMFITTERS_RED = '#C41E3A';
 function findPrintButtonsContainer() {
   const buttons = Array.from(document.querySelectorAll('button'));
   const shippingLabelButton = buttons.find(btn =>
-    btn.textContent.includes('Print 1 shipping label')
+    btn.textContent.includes('Print 1 shipping label') ||
+    btn.textContent.includes('Reprint 1 shipping label')
   );
 
   if (shippingLabelButton) {
@@ -100,13 +101,15 @@ async function triggerDownloads() {
   // Find the original buttons
   const buttons = Array.from(document.querySelectorAll('button'));
   const shippingLabelButton = buttons.find(btn =>
-    btn.textContent.includes('Print 1 shipping label')
+    btn.textContent.includes('Print 1 shipping label') ||
+    btn.textContent.includes('Reprint 1 shipping label')
   );
   const packingSlipButton = buttons.find(btn =>
     btn.textContent.includes('Print 1 packing slip')
   );
 
   if (!shippingLabelButton || !packingSlipButton) {
+    console.error('Could not find buttons. Available buttons:', buttons.map(b => b.textContent));
     throw new Error('Could not find original print buttons');
   }
 
