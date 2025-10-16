@@ -203,9 +203,21 @@ function init() {
     subtree: true
   });
 
-  // Stop observing after 10 seconds
-  setTimeout(() => observer.disconnect(), 10000);
+  // Don't stop observing - Shopify is an SPA that dynamically loads content
+  // The observer will auto-disconnect once it successfully injects the button
 }
+
+// Re-initialize on URL changes (for SPA navigation)
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const currentUrl = location.href;
+  if (currentUrl !== lastUrl) {
+    lastUrl = currentUrl;
+    console.log('URL changed, re-initializing extension');
+    // Small delay to let Shopify load the new content
+    setTimeout(init, 500);
+  }
+}).observe(document, { subtree: true, childList: true });
 
 // Start when DOM is ready
 if (document.readyState === 'loading') {
