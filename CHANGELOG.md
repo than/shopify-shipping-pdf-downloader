@@ -5,6 +5,13 @@ All notable changes to the Shopify PDF Auto-Downloader extension will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-10-16
+
+### Fixed
+- Button now appears reliably when navigating to shipping label pages via SPA navigation (without page refresh)
+- Removed MutationObserver timeout that was causing button injection to fail on slow-loading pages
+- Added URL change detection to re-initialize extension when navigating between Shopify pages
+
 ## [1.0.0] - 2025-10-16
 
 ### Added
