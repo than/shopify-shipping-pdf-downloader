@@ -135,6 +135,9 @@ async function triggerDownloads() {
 
   console.log('URLs captured:', urls);
 
+  // Stop capture mode
+  chrome.runtime.sendMessage({ action: 'stopCapture' });
+
   // Send URLs to background script for download
   chrome.runtime.sendMessage({
     action: 'downloadPDFs',
