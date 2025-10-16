@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Shopify PDF Auto-Downloader",
+  "version": "1.0.0",
+  "description": "Automatically download Shopify shipping labels and packing slips with one click",
+  "permissions": [
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://*.myshopify.com/*",
+    "https://storage.googleapis.com/*",
+    "https://shopify-shipify.s3.us-east-1.amazonaws.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.myshopify.com/admin/orders/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
