@@ -4,6 +4,7 @@
 // Track tabs that are loading PDFs
 const pdfTabs = new Map();
 let originTabId = null; // Track which tab initiated the request
+let capturedUrls = []; // Store captured URLs for download
 
 // Listen for tab updates to capture PDF URLs
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -21,30 +22,27 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const pdfInfo = pdfTabs.get(tabId);
     console.log('PDF loaded:', tabId, pdfInfo.url);
 
-    // Send URL back to origin content script
-    if (originTabId) {
-      console.log('Sending URL to origin tab:', originTabId);
-      chrome.tabs.sendMessage(originTabId, {
-        action: 'capturedURL',
-        url: pdfInfo.url
-      }).catch((err) => {
-        console.error('Could not send to content script:', err);
-      });
-    }
+    // Store the URL
+    capturedUrls.push(pdfInfo.url);
+    console.log('Captured URLs so far:', capturedUrls.length);
+
+    // Download the PDF immediately
+    downloadPDF(pdfInfo.url);
 
     // Close the PDF tab
     setTimeout(() => {
       chrome.tabs.remove(tabId).catch(() => {});
       pdfTabs.delete(tabId);
-    }, 500);
+    }, 1000);
   }
 });
 
 // Listen for download requests from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'startCapture') {
-    // Store the origin tab ID
+    // Store the origin tab ID and reset captured URLs
     originTabId = sender.tab?.id;
+    capturedUrls = [];
     console.log('Capture started from tab:', originTabId);
     sendResponse({ success: true });
   }
@@ -54,20 +52,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Download each PDF
     message.urls.forEach((url, index) => {
       if (url) {
-        // Extract filename from URL
-        let filename = extractFilename(url);
-
-        chrome.downloads.download({
-          url: url,
-          filename: filename,
-          saveAs: false // Auto-save to Downloads folder
-        }, (downloadId) => {
-          if (chrome.runtime.lastError) {
-            console.error('Download failed:', chrome.runtime.lastError);
-          } else {
-            console.log('Download started:', downloadId, filename);
-          }
-        });
+        downloadPDF(url);
       }
     });
 
@@ -76,6 +61,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return true; // Keep message channel open for async response
 });
+
+// Helper function to download a PDF
+function downloadPDF(url) {
+  const filename = extractFilename(url);
+
+  console.log('Starting download:', filename);
+
+  chrome.downloads.download({
+    url: url,
+    filename: filename,
+    saveAs: false // Auto-save to Downloads folder
+  }, (downloadId) => {
+    if (chrome.runtime.lastError) {
+      console.error('Download failed:', chrome.runtime.lastError);
+    } else {
+      console.log('Download started:', downloadId, filename);
+    }
+  });
+}
 
 // Helper function to extract filename from URL
 function extractFilename(url) {
