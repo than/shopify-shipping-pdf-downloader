@@ -119,15 +119,15 @@ async function triggerDownloads() {
   // Set up URL capture before clicking
   const urlPromises = setupURLCapture();
 
-  // Click both buttons
-  console.log('Clicking shipping label button...');
-  shippingLabelButton.click();
+  // Click packing slip first (slower printer)
+  console.log('Clicking packing slip button...');
+  packingSlipButton.click();
 
   // Small delay between clicks
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  console.log('Clicking packing slip button...');
-  packingSlipButton.click();
+  console.log('Clicking shipping label button...');
+  shippingLabelButton.click();
 
   // Wait for URLs to be captured
   console.log('Waiting for URLs to be captured...');
