@@ -4,23 +4,29 @@
 // Listen for tab updates to capture PDF URLs
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // Check if a PDF is being loaded
-  if (changeInfo.url && changeInfo.url.includes('.pdf')) {
-    // Check if it's from our target domains
-    if (changeInfo.url.includes('storage.googleapis.com') ||
-        changeInfo.url.includes('shopify-shipify.s3')) {
+  if (changeInfo.url) {
+    console.log('Tab updated:', tabId, changeInfo.url);
 
-      console.log('PDF URL captured:', changeInfo.url);
+    if (changeInfo.url.includes('.pdf') || changeInfo.url.includes('response-content-disposition')) {
+      // Check if it's from our target domains
+      if (changeInfo.url.includes('storage.googleapis.com') ||
+          changeInfo.url.includes('shopify-shipify.s3')) {
 
-      // Send URL back to content script
-      chrome.tabs.sendMessage(tabId, {
-        action: 'capturedURL',
-        url: changeInfo.url
-      }).catch(() => {
-        // Tab might not have content script, that's okay
-      });
+        console.log('PDF URL captured:', changeInfo.url);
 
-      // Close the tab automatically
-      chrome.tabs.remove(tabId);
+        // Send URL back to content script
+        chrome.tabs.sendMessage(tabId, {
+          action: 'capturedURL',
+          url: changeInfo.url
+        }).catch((err) => {
+          console.log('Could not send to content script:', err);
+        });
+
+        // Close the tab automatically after a short delay
+        setTimeout(() => {
+          chrome.tabs.remove(tabId).catch(() => {});
+        }, 500);
+      }
     }
   }
 });

@@ -10,6 +10,7 @@
     "https://*.myshopify.com/*",
     "https://admin.shopify.com/*",
     "https://storage.googleapis.com/*",
+    "https://*.storage.googleapis.com/*",
     "https://shopify-shipify.s3.us-east-1.amazonaws.com/*"
   ],
   "background": {
