@@ -1,5 +1,7 @@
 # Shopify PDF Auto-Downloader
 
+[![Git Slot Machine](https://img.shields.io/badge/git--slot--machine-enabled-brightgreen)](https://github.com/than/git-slot-machine)
+
 Chrome extension to automatically download Shopify shipping labels and packing slips with one click.
 
 ## Features
