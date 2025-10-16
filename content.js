@@ -113,19 +113,27 @@ async function triggerDownloads() {
     throw new Error('Could not find original print buttons');
   }
 
+  // Notify background script to start capture
+  chrome.runtime.sendMessage({ action: 'startCapture' });
+
   // Set up URL capture before clicking
   const urlPromises = setupURLCapture();
 
   // Click both buttons
+  console.log('Clicking shipping label button...');
   shippingLabelButton.click();
 
   // Small delay between clicks
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
+  console.log('Clicking packing slip button...');
   packingSlipButton.click();
 
   // Wait for URLs to be captured
+  console.log('Waiting for URLs to be captured...');
   const urls = await urlPromises;
+
+  console.log('URLs captured:', urls);
 
   // Send URLs to background script for download
   chrome.runtime.sendMessage({

@@ -3,6 +3,7 @@
 
 // Track tabs that are loading PDFs
 const pdfTabs = new Map();
+let originTabId = null; // Track which tab initiated the request
 
 // Listen for tab updates to capture PDF URLs
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -20,17 +21,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const pdfInfo = pdfTabs.get(tabId);
     console.log('PDF loaded:', tabId, pdfInfo.url);
 
-    // Send URL back to content script
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: 'capturedURL',
-          url: pdfInfo.url
-        }).catch((err) => {
-          console.log('Could not send to content script:', err);
-        });
-      }
-    });
+    // Send URL back to origin content script
+    if (originTabId) {
+      console.log('Sending URL to origin tab:', originTabId);
+      chrome.tabs.sendMessage(originTabId, {
+        action: 'capturedURL',
+        url: pdfInfo.url
+      }).catch((err) => {
+        console.error('Could not send to content script:', err);
+      });
+    }
 
     // Close the PDF tab
     setTimeout(() => {
@@ -42,7 +42,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // Listen for download requests from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'downloadPDFs') {
+  if (message.action === 'startCapture') {
+    // Store the origin tab ID
+    originTabId = sender.tab?.id;
+    console.log('Capture started from tab:', originTabId);
+    sendResponse({ success: true });
+  }
+  else if (message.action === 'downloadPDFs') {
     console.log('Received download request for URLs:', message.urls);
 
     // Download each PDF
