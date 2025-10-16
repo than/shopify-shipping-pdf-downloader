@@ -5,9 +5,29 @@
 const pdfTabs = new Map();
 let originTabId = null; // Track which tab initiated the request
 let capturedUrls = []; // Store captured URLs for download
+let captureActive = false; // Track if we're actively capturing
+
+// Listen for new tabs being created
+chrome.tabs.onCreated.addListener((tab) => {
+  if (captureActive && tab.pendingUrl &&
+      (tab.pendingUrl.includes('storage.googleapis.com') ||
+       tab.pendingUrl.includes('shopify-shipify.s3') ||
+       tab.pendingUrl.includes('admin.shopify.com'))) {
+    console.log('New PDF tab created:', tab.id, 'making inactive');
+    // Move tab to background
+    chrome.tabs.update(tab.id, { active: false });
+  }
+});
 
 // Listen for tab updates to capture PDF URLs
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // If capture is active, ensure PDF tabs stay in background
+  if (captureActive && changeInfo.url &&
+      (changeInfo.url.includes('storage.googleapis.com') ||
+       changeInfo.url.includes('shopify-shipify.s3'))) {
+    chrome.tabs.update(tabId, { active: false });
+  }
+
   // Check if this is a PDF URL from Shopify storage
   if (changeInfo.url) {
     if (changeInfo.url.includes('storage.googleapis.com') ||
@@ -43,7 +63,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Store the origin tab ID and reset captured URLs
     originTabId = sender.tab?.id;
     capturedUrls = [];
+    captureActive = true;
     console.log('Capture started from tab:', originTabId);
+    sendResponse({ success: true });
+  }
+  else if (message.action === 'stopCapture') {
+    captureActive = false;
+    console.log('Capture stopped');
     sendResponse({ success: true });
   }
   else if (message.action === 'downloadPDFs') {
