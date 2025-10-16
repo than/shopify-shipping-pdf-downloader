@@ -1,33 +1,42 @@
 // Shopify PDF Auto-Downloader - Background Service Worker
 // Handles PDF URL capture and automatic downloads
 
+// Track tabs that are loading PDFs
+const pdfTabs = new Map();
+
 // Listen for tab updates to capture PDF URLs
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // Check if a PDF is being loaded
+  // Check if this is a PDF URL from Shopify storage
   if (changeInfo.url) {
-    console.log('Tab updated:', tabId, changeInfo.url);
+    if (changeInfo.url.includes('storage.googleapis.com') ||
+        changeInfo.url.includes('shopify-shipify.s3')) {
+      console.log('PDF tab detected:', tabId, changeInfo.url);
+      pdfTabs.set(tabId, { url: changeInfo.url, status: 'loading' });
+    }
+  }
 
-    if (changeInfo.url.includes('.pdf') || changeInfo.url.includes('response-content-disposition')) {
-      // Check if it's from our target domains
-      if (changeInfo.url.includes('storage.googleapis.com') ||
-          changeInfo.url.includes('shopify-shipify.s3')) {
+  // Wait for the tab to finish loading
+  if (changeInfo.status === 'complete' && pdfTabs.has(tabId)) {
+    const pdfInfo = pdfTabs.get(tabId);
+    console.log('PDF loaded:', tabId, pdfInfo.url);
 
-        console.log('PDF URL captured:', changeInfo.url);
-
-        // Send URL back to content script
-        chrome.tabs.sendMessage(tabId, {
+    // Send URL back to content script
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
           action: 'capturedURL',
-          url: changeInfo.url
+          url: pdfInfo.url
         }).catch((err) => {
           console.log('Could not send to content script:', err);
         });
-
-        // Close the tab automatically after a short delay
-        setTimeout(() => {
-          chrome.tabs.remove(tabId).catch(() => {});
-        }, 500);
       }
-    }
+    });
+
+    // Close the PDF tab
+    setTimeout(() => {
+      chrome.tabs.remove(tabId).catch(() => {});
+      pdfTabs.delete(tabId);
+    }, 500);
   }
 });
 
