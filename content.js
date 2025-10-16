@@ -45,12 +45,13 @@ function injectDownloadButton() {
   button.className = 'Polaris-Button Polaris-Button--pressable Polaris-Button--variantPrimary Polaris-Button--sizeMedium Polaris-Button--textAlignCenter Polaris-Button--fullWidth';
   button.style.backgroundColor = BROOMFITTERS_RED;
   button.style.borderColor = BROOMFITTERS_RED;
+  button.style.boxShadow = 'inset 0 -1px 0 0 rgba(0, 0, 0, 0.2)';
   button.setAttribute('type', 'button');
   button.setAttribute('aria-disabled', 'false');
 
   const buttonText = document.createElement('span');
   buttonText.className = 'Polaris-Text--root Polaris-Text--bodySm Polaris-Text--semibold';
-  buttonText.textContent = 'Download Both';
+  buttonText.textContent = 'Print both';
 
   button.appendChild(buttonText);
   buttonWrapper.appendChild(button);
